@@ -46,15 +46,15 @@ module seg7(
         else if (val == 8)
             seg <= 8'b10000000;
         else if (val == 9)
-            seg <= 8'b10010000;
+            seg <= 8'b10011000;
         else if (val == 10)
-            seg <= 8'b10010000;
+            seg <= 8'b10001000;
         else if (val == 11)
             seg <= 8'b10000011;
         else if (val == 12)
-            seg <= 8'b11000011;
+            seg <= 8'b11000110;
         else if (val == 13)
-            seg <= 8'b10100010;
+            seg <= 8'b10100001;
         else if (val == 14)
             seg <= 8'b10000110;
         else if (val == 15)

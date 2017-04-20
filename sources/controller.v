@@ -60,10 +60,10 @@ module controller(
     des DES(ciphertext, plaintext, key, 0, 0, clk);
     reg ready_to_encode = 0;
     
-    reg [16:0] output_byte_count;
+    reg [16:0] output_byte_count = 0;
     reg [3:0] output_byte;
     
-    seg7 SEG7(output_byte[3:0], seg, clk);
+    seg7 SEG7(output_byte, seg, clk);
     
     always @(posedge clk) begin
         if (ready_to_encode) begin
@@ -103,28 +103,39 @@ module controller(
     end
     
     always @(posedge seg_clock[10]) begin
-        if (output_off >= 25000 && shown_secret < 100) begin
-            output_byte <= 3;
+        if (output_off >= 20000 && shown_secret < 5 && plaintext == 64'hcab00d1e) begin
+            output_byte <= (key ^ ciphertext) >> (output_byte_count << 2);
+//            output_byte <= 3;
 //            seg <= 0;
-            if (shown_secret == 0) begin
-                output_byte_count <= output_byte_count + 1;
-            end
             
             an <= 4'b1110;
             shown_secret <= shown_secret + 1;
         end
-        else if (shown_cipher < 100000) begin
+        else if (shown_cipher < 80000) begin
 //            seg <= 7'b1111111;
 //            seg <= output_byte;            
             an <= 4'b1110;
-            output_byte <= ciphertext >> (output_byte_count << 2);
+            if (output_byte_count == 16) begin
+                output_byte <= 8;
+            end
+            else begin
+                output_byte <= ciphertext >> (output_byte_count << 2);
+            end
             shown_cipher <= shown_cipher + 1;
         end
-        else if (output_off < 25000) begin
+        else if (output_off < 20000) begin
             an <= 4'b1111;
             output_off <= output_off + 1;
+            
+            if (shown_secret == 0) begin
+                output_byte_count <= output_byte_count + 1;
+            end
+            
+            if (output_byte_count == 17) begin
+                output_byte_count <= 0;
+            end
         end
-        else if (output_off_2 < 25000) begin
+        else if (output_off_2 < 20000) begin
             an <= 4'b1111;
             output_off_2 <= output_off_2 + 1;
         end
