@@ -105,12 +105,12 @@ module controller(
     end
     
     always @(posedge seg_clock[10]) begin
-        /*if (output_off >= 20000 && shown_secret < 3 && text_count == 2) begin
+        if (output_off >= 20000 && shown_secret < 3 && text_count == 2) begin
             output_byte <= ((key ^ ciphertext) >> (output_byte_count << 2)) & 4'hF;
             an <= 4'b1110;
             shown_secret <= shown_secret + 1;
         end
-        else */if (shown_cipher < 80000) begin
+        else if (shown_cipher < 80000) begin
             an <= 4'b1110;
             if (output_byte_count == 16) begin
                 output_byte <= 5'h1F;
