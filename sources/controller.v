@@ -49,25 +49,25 @@ module controller(
     uart_tx UTX(clk, tx_valid, tx_output, tx_active, tx, tx_ready);
     
     reg [10:0] seg_clock;
-    reg [10:0] shown_secret;
+    //reg [10:0] shown_secret;
     reg [17:0] shown_cipher;
     reg [17:0] output_off;
-    reg [17:0] output_off_2;
     
     reg [63:0] plaintext;
-    reg [55:0] key = 56'hacce551;
+    reg [55:0] key = 56'hcab00d1ecab00d;
     wire [63:0] ciphertext;
     des DES(ciphertext, plaintext, key, 0, 0, clk);
     reg ready_to_encode = 0;
     
     reg [16:0] output_byte_count = 0;
-    reg [3:0] output_byte;
+    reg [4:0] output_byte;
+    
+    reg [1:0] text_count;
     
     seg7 SEG7(output_byte, seg, clk);
     
     always @(posedge clk) begin
         if (ready_to_encode) begin
-            tx_data <= ciphertext;
             out_byte_count <= 7;
             tx_valid <= 1;
             ready_to_encode <= 0;
@@ -80,7 +80,9 @@ module controller(
             
             if (in_byte_count == 7) begin
                 plaintext <= rx_data;
+                tx_data <= rx_data;
                 ready_to_encode <= 1;
+                text_count <= text_count + 1;
             end
         end
         
@@ -103,31 +105,26 @@ module controller(
     end
     
     always @(posedge seg_clock[10]) begin
-        if (output_off >= 20000 && shown_secret < 5 && plaintext == 64'hcab00d1e) begin
-            output_byte <= (key ^ ciphertext) >> (output_byte_count << 2);
-//            output_byte <= 3;
-//            seg <= 0;
-            
+        /*if (output_off >= 20000 && shown_secret < 3 && text_count == 2) begin
+            output_byte <= ((key ^ ciphertext) >> (output_byte_count << 2)) & 4'hF;
             an <= 4'b1110;
             shown_secret <= shown_secret + 1;
         end
-        else if (shown_cipher < 80000) begin
-//            seg <= 7'b1111111;
-//            seg <= output_byte;            
+        else */if (shown_cipher < 80000) begin
             an <= 4'b1110;
             if (output_byte_count == 16) begin
-                output_byte <= 8;
+                output_byte <= 5'h1F;
             end
             else begin
-                output_byte <= ciphertext >> (output_byte_count << 2);
+                output_byte <= (ciphertext >> (output_byte_count << 2)) & 4'hF;
             end
             shown_cipher <= shown_cipher + 1;
         end
-        else if (output_off < 20000) begin
+        else if (output_off < 40000) begin
             an <= 4'b1111;
             output_off <= output_off + 1;
             
-            if (shown_secret == 0) begin
+            if (output_off == 0) begin
                 output_byte_count <= output_byte_count + 1;
             end
             
@@ -135,15 +132,10 @@ module controller(
                 output_byte_count <= 0;
             end
         end
-        else if (output_off_2 < 20000) begin
-            an <= 4'b1111;
-            output_off_2 <= output_off_2 + 1;
-        end
         else begin
-            shown_secret <= 0;
+            //shown_secret <= 0;
             shown_cipher <= 0;
             output_off <= 0;
-            output_off_2 <= 0;
         end
     end
 endmodule

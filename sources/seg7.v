@@ -21,7 +21,7 @@
 
 
 module seg7(
-    input [3:0] val,
+    input [4:0] val,
     output reg [7:0] seg,
     input clk
     );
@@ -59,6 +59,8 @@ module seg7(
             seg <= 8'b10000110;
         else if (val == 15)
             seg <= 8'b10001110;
+        else 
+            seg <= 8'b10110111;
     end
     
 endmodule
